@@ -1,4 +1,6 @@
 from poker_module import Game, Player, Bot
+# git push -u origin main
+
 
 # ---------- VARIABLES And INPUTS ---------- #
 start_balance = 10000
@@ -11,27 +13,35 @@ default_configuration = {
         }
 
 # ---------- FUNCTIONS ---------- #
+def br():
+    print("="*60)
+
 def create_players(bots_amount, players_amount):
-    global players
     players = []
-    for i in range (bots_amount):
-        players.append(Bot(f"Bob{i+1}", start_balance, default_configuration))
     for i in range (players_amount):
         players.append(Player(f"Player{i+1}", start_balance))
+    for i in range (bots_amount):
+        players.append(Bot(f"Bob{i+1}", start_balance, default_configuration))
 
-num_players = len(players)
+    return players
+
+players = create_players(bots_amount, players_amount)
 game = Game(100, players)
 
+def hand_round():
+    global players, game
+    num_players = len(players)
+    game.give_cards()
+    dealer_button = game.process_blind()
 
+    br()
+    print("POKER GAME")
+    print([p.name for p in players])
+    print(f"BTN: {players[dealer_button].name}")
+    print(f"SB: {players[(dealer_button+1) % num_players].name}")
+    print(f"BB: {players[(dealer_button+2) % num_players].name}")
+    br()
 
+    game.round(game.blind *2)
 
-# GAME #
-game.give_cards()
-process_blind = game.process_blind()
-
-print("POKER GAME")
-print(f"BTN: {players[process_blind].name}")
-print(f"SB: {players[(process_blind+1) % num_players].name}")
-print(f"BB: {players[(process_blind+2) % num_players].name}")
-
-game.round(game.blind *2)
+hand_round()
