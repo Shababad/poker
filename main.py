@@ -1,6 +1,7 @@
 from poker_module import Game, Player, Bot
-# git push -u origin main
 
+# git push -u origin main
+#c:/Users/abiel/Documents/PokerProject/main.py
 
 # ---------- VARIABLES And INPUTS ---------- #
 start_balance = 10000

@@ -1,4 +1,5 @@
 from random import randint
+from prettytable import PrettyTable
 
 class Game():
     def __init__(self, blind: int, players: list):
@@ -55,7 +56,9 @@ class Game():
             big_blind.all_in()
         else:
             small_blind.bal(- self.blind)
+            small_blind.round_stake += self.blind
             big_blind.bal(- self.blind *2)
+            big_blind.round_stake += self.blind *2
 
             self.add_pot(self.blind *3)
 
@@ -67,31 +70,47 @@ class Game():
         all_in_value = 0
         if len(action) == 2:
             bet_amount = int(action[1])
-            if action_type == "call":
-                player.bal(-bet)
-                self.add_pot(bet)
-            elif action_type == "bet":
+
+            if action_type == "bet":
                 player.bal(-bet_amount)
                 self.add_pot(bet_amount)
+                print(f"{player.name} ({player.balance}) bets {action[1]}.")
+                player.round_stake += bet_amount
+
             elif action_type == "raise":
-                player.bal(-bet_amount)
-                self.add_pot(bet_amount)
+                player.bal(-(bet_amount-player.round_stake))
+                self.add_pot(bet_amount-player.round_stake)
+                print(f"{player.name} ({player.balance}) raises to {action[1]} (+{bet_amount-player.round_stake}).")
+                player.round_stake += bet_amount - player.round_stake
+
             elif action_type == "all_in":
                 self.add_pot(player.balance)
                 all_in_value = player.balance
+                player.round_stake += player.balance
                 player.all_in()
+                print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
         else:
-            if action_type == "fold":
+            if action_type == "call":
+                player.bal(-(bet-player.round_stake))
+                self.add_pot(bet-player.round_stake)
+                
+                print(f"{player.name} ({player.balance}) calls {bet} (+{bet-player.round_stake}).")
+                player.round_stake += bet - player.round_stake
+
+            elif action_type == "fold":
                 player.folded = True
+                print(f"{player.name} ({player.balance}) folds.")
 
-        if action == "all_in":
-            print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
-        if len(action) == 2:
-            print(f"{player.name} ({player.balance}) {action[0]}s {action[1]}.")
-        else:
-            print(f"{player.name} ({player.balance}) {action[0]}s.")
-
+            elif action_type == "check":
+                print(f"{player.name} ({player.balance}) checks.")
     
+    def print_table(self):
+        table = PrettyTable()
+        table.field_names = ["Name", "Balance", "Folded"]
+        for player in self.players:
+            table.add_row([player.name, player.balance, player.folded])
+        print(table)
+
     def round(self, bet = 0):
         num_player = len(self.players)
         i = self.btn + 3
@@ -111,12 +130,11 @@ class Game():
                 i += 1
                 continue
 
-            print(f"{turn.name}s turn:")
-
             if last_raiser is not None and i%num_player == last_raiser: # if the turn is the last raiser with no new raises, end the round
                 print("last raiser is turn")
                 break
-            
+
+            print(f"{turn.name}s turn:")
             action = turn.decide(bet, self.blind)
 
             if len(action.split()) == 2:
@@ -133,6 +151,9 @@ class Game():
 
             self.take_action(turn, action, bet)
         print("round ended")
+        print(self.pot)
+        self.print_table()
+
 
 
                 

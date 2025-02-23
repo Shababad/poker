@@ -11,6 +11,7 @@ class Bot():
         self.bluff_frequency = configuration["bluff_frequency"]
         self.risk_tolerance = configuration["risk_tolerance"]
 
+        self.round_stake: int = 0
         self.cards: int = []
         self.type = "bot"
 
@@ -97,11 +98,11 @@ class Bot():
         else:
             if rating >= 7 or risk_tolerance:
                 if aggressiveness:
-                    return f"raise {2*bet}" if 2*bet < self.balance else f"call {bet}"
+                    return f"raise {bet + (2*blind)}" if bet+(2*blind) < self.balance else f"call"
                 else:
-                    return f"call {bet}"
+                    return f"call"
             elif rating <= 3 and not bluff_frequency:
                 return "fold"
             else:
-                return f"call {bet}"
+                return f"call"
             
