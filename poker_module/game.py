@@ -8,7 +8,7 @@ class Game():
         self.btn: int = None
 
         self.cards: list = []
-        self.table: list = []
+        self.community_cards: list = []
         self.pot: int = 0
         self.deck = [ # ♠♥♣♦
             "♠2", "♠3", "♠4", "♠5", "♠6", "♠7", "♠8", "♠9", "♠T", "♠J", "♠Q", "♠K", "♠A",
@@ -18,21 +18,41 @@ class Game():
         ]
 
 
-
+    # Basic Functions #
     def add_card(self, card: str):
         self.cards.append(card)
 
     def add_pot(self, amount: int):
         self.pot += amount
 
-    def give_cards(self):
+    def new_card(self):
+        card = self.deck[randint(0, 51)]
+        while card in self.cards:
+            card = self.deck[randint(0, 51)]
+        return card 
+
+    def give_first_hand(self):
         for p in self.players:
             for i in range(2):
-                card = self.deck[randint(0, 51)]
-                while card in self.cards:
-                    card = self.deck[randint(0, 51)]
+                card = self.new_card()
                 self.add_card(card)
                 p.add_card(card)
+    
+    def give_com_card(self, amount):
+        for i in range (amount):
+            card = self.new_card()
+            self.add_card(card)
+            self.community_cards.append(card)
+            for p in self.players:
+                p.add_card(card)
+
+    def print_current(self):
+        table = PrettyTable()
+        table.field_names = ["Name", "Balance", "Folded"]
+        for player in self.players:
+            table.add_row([player.name, player.balance, player.folded])
+        print(f"Pot: {self.pot}")
+        print(table)
 
     def process_blind(self):
         num_players = len(self.players)
@@ -56,14 +76,51 @@ class Game():
             big_blind.all_in()
         else:
             small_blind.bal(- self.blind)
-            small_blind.round_stake += self.blind
+            small_blind.add_stake(self.blind)
             big_blind.bal(- self.blind *2)
-            big_blind.round_stake += self.blind *2
+            big_blind.add_stake(self.blind * 2)
 
             self.add_pot(self.blind *3)
 
         return BTN
-    
+
+    # Game mechanic Functions #
+    def start(self):
+        def br():
+            print("="*60)
+        players = self.players
+        num_players = len(players)
+        player = next((p for p in self.players if p.name == "Player1"), None)
+
+        self.give_first_hand()
+        dealer_button = self.process_blind()
+
+        br()
+
+        print("POKER GAME")
+        print(f"BTN: {players[dealer_button].name}")
+        print(f"SB: {players[(dealer_button+1) % num_players].name}")
+        print(f"BB: {players[(dealer_button+2) % num_players].name}")
+        print(f"Balance: {player.balance}")
+        print(f"Cards: {player.cards}")
+
+        br()
+
+        self.round(self.blind *2)
+
+        br()
+
+        self.print_current()
+        for p in players:
+            p.round_reset()
+
+        self.give_com_card(3)
+        print(f"Community cards: {self.community_cards}")
+        print(f"Balance: {player.balance}")
+        print(f"Cards: {player.cards[:2]}")
+        self.round()
+
+
     def take_action(self, player, action, bet): # actions: check, call, bet, raise, all-in
         action = action.split()
         action_type = action[0]
@@ -74,42 +131,36 @@ class Game():
             if action_type == "bet":
                 player.bal(-bet_amount)
                 self.add_pot(bet_amount)
-                print(f"{player.name} ({player.balance}) bets {action[1]}.")
-                player.round_stake += bet_amount
+                print(f"{player.name} ({player.cards}, {player.balance}) bets {action[1]}.")
+                player.add_stake(bet_amount)
 
             elif action_type == "raise":
                 player.bal(-(bet_amount-player.round_stake))
                 self.add_pot(bet_amount-player.round_stake)
-                print(f"{player.name} ({player.balance}) raises to {action[1]} (+{bet_amount-player.round_stake}).")
-                player.round_stake += bet_amount - player.round_stake
+                print(f"{player.name} ({player.cards}, {player.balance}) raises to {action[1]} (+{bet_amount-player.round_stake}).")
+                player.add_stake(bet_amount - player.round_stake)
 
             elif action_type == "all_in":
                 self.add_pot(player.balance)
                 all_in_value = player.balance
-                player.round_stake += player.balance
+                player.add_stake(player.balance)
                 player.all_in()
-                print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
+                print(f"{player.name} ({player.cards}, {player.balance}) goes all in with {all_in_value}.")
         else:
             if action_type == "call":
                 player.bal(-(bet-player.round_stake))
                 self.add_pot(bet-player.round_stake)
                 
-                print(f"{player.name} ({player.balance}) calls {bet} (+{bet-player.round_stake}).")
-                player.round_stake += bet - player.round_stake
+                print(f"{player.name} ({player.cards}, {player.balance}) calls {bet} (+{bet-player.round_stake}).")
+                player.add_stake(bet - player.round_stake)
 
             elif action_type == "fold":
                 player.folded = True
-                print(f"{player.name} ({player.balance}) folds.")
+                print(f"{player.name} ({player.cards}, {player.balance}) folds.")
 
             elif action_type == "check":
-                print(f"{player.name} ({player.balance}) checks.")
-    
-    def print_table(self):
-        table = PrettyTable()
-        table.field_names = ["Name", "Balance", "Folded"]
-        for player in self.players:
-            table.add_row([player.name, player.balance, player.folded])
-        print(table)
+                print(f"{player.name} ({player.cards}, {player.balance}) checks.")
+
 
     def round(self, bet = 0):
         num_player = len(self.players)
@@ -150,10 +201,3 @@ class Game():
             i += 1
 
             self.take_action(turn, action, bet)
-        print("round ended")
-        print(self.pot)
-        self.print_table()
-
-
-
-                

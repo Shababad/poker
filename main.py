@@ -14,8 +14,6 @@ default_configuration = {
         }
 
 # ---------- FUNCTIONS ---------- #
-def br():
-    print("="*60)
 
 def create_players(bots_amount, players_amount):
     players = []
@@ -29,20 +27,4 @@ def create_players(bots_amount, players_amount):
 players = create_players(bots_amount, players_amount)
 game = Game(100, players)
 
-def hand_round():
-    global players, game
-    num_players = len(players)
-    game.give_cards()
-    dealer_button = game.process_blind()
-
-    br()
-    print("POKER GAME")
-    print([p.name for p in players])
-    print(f"BTN: {players[dealer_button].name}")
-    print(f"SB: {players[(dealer_button+1) % num_players].name}")
-    print(f"BB: {players[(dealer_button+2) % num_players].name}")
-    br()
-
-    game.round(game.blind *2)
-
-hand_round()
+game.start()
