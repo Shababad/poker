@@ -30,4 +30,9 @@ class Player():
             possible_actions.append("bet")
         action = input(f"Your turn, {possible_actions}: ")
 
+        if action == "call":
+            action = f"call {bet}"
+        elif action == "all-in":
+            action = f"call {self.balance}" 
+
         return action

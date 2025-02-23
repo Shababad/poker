@@ -64,6 +64,7 @@ class Game():
     def take_action(self, player, action, bet): # actions: check, call, bet, raise, all-in
         action = action.split()
         action_type = action[0]
+        all_in_value = 0
         if len(action) == 2:
             bet_amount = int(action[1])
             if action_type == "call":
@@ -77,8 +78,14 @@ class Game():
                 self.add_pot(bet_amount)
             elif action_type == "all_in":
                 self.add_pot(player.balance)
+                all_in_value = player.balance
                 player.all_in()
+        else:
+            if action_type == "fold":
+                player.folded = True
 
+        if action == "all_in":
+            print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
         if len(action) == 2:
             print(f"{player.name} ({player.balance}) {action[0]}s {action[1]}.")
         else:
@@ -90,16 +97,23 @@ class Game():
         i = self.btn + 3
         count = 0
         last_raiser: int = None
+        bet = bet
         
 
         while count < num_player:
 
             turn = self.players[i % num_player]
-            print(f"{turn.name} is turn:")
             if turn.folded: # when the turn is folded, ignore and skip
                 i += 1
                 continue
-            if last_raiser is not None and i%num_player == last_raiser%num_player: # if the turn is the last raiser with no new raises, end the round
+
+            if turn.all_in: # when the turn is folded, ignore and skip
+                i += 1
+                continue
+
+            print(f"{turn.name}s turn:")
+
+            if last_raiser is not None and i%num_player == last_raiser: # if the turn is the last raiser with no new raises, end the round
                 print("last raiser is turn")
                 break
             
@@ -107,6 +121,9 @@ class Game():
 
             if len(action.split()) == 2:
                 if int(action.split()[1]) > bet: # when new bet is higher than current bet
+                    last_raiser = i%num_player
+                    if action.split()[0] == "all_in":
+                        bet = turn.balance
                     bet = int(action.split()[1])
                     count = 0
             else:
