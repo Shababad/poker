@@ -27,16 +27,16 @@ BluffBot Bob is an advanced AI-powered poker bot designed to play Texas Hold'em 
 
 ## ✅ Implemented Features
 - [x] Hand strength evaluation 🃏
-- [x] Player decision-making logic 🧠
 - [x] Betting system 💰
 - [x] Blind and position handling 🎯
-- [x] Multi-player support 👥
-- [x] AI opponent behavior tracking 📈
-- [x] Round logic ensuring correct flow 🔄
 - [x] Checking for all possible hands 🤖
 - [x] Raising, calling, folding logic 🏆
 
 ## 🚀 Upcoming Features
+- [ ] Multi-player support 👥
+- [ ] AI opponent behavior tracking 📈
+- [ ] Round logic ensuring correct flow 🔄
+- [ ] Player decision-making logic 🧠
 - [ ] Advanced **bluff detection and execution** 🎭
 - [ ] **Machine learning integration** for self-improvement 📊
 - [ ] Memory system to recall opponent tendencies 🧠
