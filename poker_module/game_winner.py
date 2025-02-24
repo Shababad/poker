@@ -1,10 +1,6 @@
-from random import random, randint
-from time import sleep
 from collections import Counter
 
 ranks = {"2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "T": 10, "J": 11, "Q": 12, "K": 13, "A": 14}
-
-# ---------- SIDE FUNCTIONS ---------- #
 
 def has_pair(cards):
     rank_counts = {}
@@ -127,121 +123,44 @@ def has_royal_flush(cards):
         return True, royal_flush
     return False, []
 
-
-
-# ---------- MAIN FUNCTIONS ---------- #
-
-def rate_hand(self):
-    cards = self.cards
-
-    if len(cards) == 2: # Preflop Hand
-        
-
-        rank1, rank2 = ranks[cards[0][1]], ranks[cards[1][1]]
-        suit1, suit2 = cards[0][0], cards[1][0]
-
-        is_suited = suit1 == suit2
-        is_pair = rank1 == rank2
-        diff = abs(rank1-rank2)
-
-        if is_pair: # pair preflop hand
-            if rank1 >= 10:
-                return 10
-            elif rank1 >= 7:
-                return 8
-            elif rank1 >= 4:
-                return 6
-            else: return 4
-
-        elif is_suited: # suited preflop hand
-            if (rank1, rank2) in [(14,13), (14,12)]:
-                return 9
-            elif (rank1, rank2) in [(14,11), (13,12)]:
-                return 8
-            elif (rank1, rank2) in [(14,10), (13,11)]:
-                return 7
-            elif diff == 1 and max(rank1, rank2) >= 9:
-                return 6
-            elif diff == 2 and max(rank1, rank2) >= 10:
-                return 5
-            elif diff == 1 and max(rank1, rank2) >= 7:
-                return 5
-            else:
-                return 4
-            
-        else: # connectors and others
-            if (rank1, rank2) in [(14,13), (14,12)]:
-                return 8
-            elif (rank1, rank2) in [(14,11), (13,12)]:
-                return 7
-            elif diff == 1 and max(rank1, rank2) >= 10:
-                return 6
-            elif diff == 2 and max(rank1, rank2) >= 11:
-                return 5
-            elif diff == 3 and max(rank1, rank2) >= 11:
-                return 4
-            elif max(rank1, rank2) >= 10:
-                return 3
-            else:
-                return 2
-            
+def best_combination(cards):
+    if has_royal_flush(cards)[0]:
+        return 10, max(has_royal_flush(cards)[1])
+    elif has_straight_flush(cards)[0]:
+        return 9, max(has_straight_flush(cards)[1])
+    elif has_four_of_a_kind(cards)[0]:
+        return 8, max(has_four_of_a_kind(cards)[1])
+    elif has_full_house(cards)[0]:
+        return 7, max(has_full_house(cards)[1])
+    elif has_flush(cards)[0]:
+        return 6, max(has_flush(cards)[1])
+    elif has_straight(cards)[0]:
+        return 5, max(has_straight(cards)[1])
+    elif has_three_of_a_kind(cards)[0]:
+        return 4, max(has_three_of_a_kind(cards)[1])
+    elif has_two_pair(cards)[0]:
+        return 3, max(has_two_pair(cards)[1])
+    elif has_pair(cards)[0]:
+        return 2, max(has_pair(cards)[1])
     else:
-        if has_royal_flush(cards)[0]:
-            print("royal flush")
-            return 10
-        elif has_straight_flush(cards)[0]:
-            print("straight flush")
-            return 9
-        elif has_four_of_a_kind(cards)[0]:
-            print("four of a kind")
-            return 8
-        elif has_full_house(cards)[0]:
-            print("full house")
-            return 7
-        elif has_flush(cards)[0]:
-            print("flush")
-            return 6
-        elif has_straight(cards)[0]:
-            print("straight")
-            return 5
-        elif has_three_of_a_kind(cards)[0]:
-            print("three of a kind")
-            return 4
-        elif has_two_pair(cards)[0]:
-            print("two pair")
-            return 3
-        elif has_pair(cards)[0]:
-            print("pair")
-            return 2
-        else:
-            print("high card")
-            return 1
-        
+        high_card_list = [ranks[card[1]] for card in cards]
+        sorted(high_card_list, key=int, reverse=True)
+        return 1, max(high_card_list)
 
+def decide_winner(players):
+    highest_player = None
+    highest_combination = 0
+    highest_card = 0
+    for player in players:
+        player_combination = best_combination(player.cards)
+        if player_combination[0] > highest_combination: # if combination is higher than highest
+            highest_combination = player_combination[0]
+            highest_player = player
+            highest_card = player_combination[1]
+        elif player_combination[0] == highest_combination: # if combination is same
+            if player_combination[1] > highest_card: # if highest card in combination
+                highest_combination = player_combination[0]
+                highest_player = player
+                highest_card = player_combination[1]
+    return highest_player, player_combination[0]
 
-
-
-def decide(self, bet, blind):
-    rand = random()
-    rating = self.rate_hand()
-    aggressiveness = self.aggressiveness >= rand
-    bluff_frequency = self.bluff_frequency >= rand
-    risk_tolerance = self.risk_tolerance >= rand
-
-    sleep(randint(1, 4))
-
-    if bet == 0:
-        return f"bet {blind}" if (rating <= 4) and (aggressiveness or bluff_frequency) else "check"
-    elif bet >= self.balance:
-        return f"all-in {self.balance}" if rating >= 7 or risk_tolerance else "fold"
-    else:
-        if rating >= 7 or risk_tolerance:
-            if aggressiveness:
-                return f"raise {bet + (2*blind)}" if bet+(2*blind) < self.balance else f"call"
-            else:
-                return f"call"
-        elif rating <= 3 and not bluff_frequency:
-            return "fold"
-        else:
-            return f"call"
-        

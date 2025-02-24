@@ -1,5 +1,6 @@
 from random import randint
 from prettytable import PrettyTable
+from .game_winner import decide_winner
 
 class Game():
     def __init__(self, blind: int, players: list):
@@ -88,6 +89,9 @@ class Game():
     def start(self):
         def br():
             print("="*60)
+        def reset():
+            for p in players:
+                p.round_reset()
         players = self.players
         num_players = len(players)
         player = next((p for p in self.players if p.name == "Player1"), None)
@@ -106,13 +110,12 @@ class Game():
 
         br()
 
-        self.round(self.blind *2)
+        self.round(3, self.blind *2)
 
         br()
 
         self.print_current()
-        for p in players:
-            p.round_reset()
+        reset()
 
         self.give_com_card(3)
         print(f"Community cards: {self.community_cards}")
@@ -120,6 +123,31 @@ class Game():
         print(f"Cards: {player.cards[:2]}")
         self.round()
 
+        br()
+
+        self.print_current()
+        reset()
+
+        self.give_com_card(1)
+        print(f"Community cards: {self.community_cards}")
+        print(f"Balance: {player.balance}")
+        print(f"Cards: {player.cards[:2]}")
+        self.round()
+
+        br()
+
+        self.print_current()
+        reset()
+
+        self.give_com_card(1)
+        print(f"Community cards: {self.community_cards}")
+        print(f"Balance: {player.balance}")
+        print(f"Cards: {player.cards[:2]}")
+        self.round()
+
+        winner = decide_winner([p for p in self.players if not p.folded])
+        hand_rankings = {1: "High Card", 2: "Pair", 3: "Two Pair", 4: "Three of a Kind", 5: "Straight", 6: "Flush", 7: "Full House", 8: "Four of a Kind", 9: "Straight Flush", 10: "Royal Flush", }
+        print(f"{winner[0].name} won the hand with {hand_rankings[winner[1]]}!")
 
     def take_action(self, player, action, bet): # actions: check, call, bet, raise, all-in
         action = action.split()
@@ -131,13 +159,13 @@ class Game():
             if action_type == "bet":
                 player.bal(-bet_amount)
                 self.add_pot(bet_amount)
-                print(f"{player.name} ({player.cards}, {player.balance}) bets {action[1]}.")
+                print(f"{player.name} ({player.balance}) bets {action[1]}.")
                 player.add_stake(bet_amount)
 
             elif action_type == "raise":
                 player.bal(-(bet_amount-player.round_stake))
                 self.add_pot(bet_amount-player.round_stake)
-                print(f"{player.name} ({player.cards}, {player.balance}) raises to {action[1]} (+{bet_amount-player.round_stake}).")
+                print(f"{player.name} ({player.balance}) raises to {action[1]} (+{bet_amount-player.round_stake}).")
                 player.add_stake(bet_amount - player.round_stake)
 
             elif action_type == "all_in":
@@ -145,26 +173,26 @@ class Game():
                 all_in_value = player.balance
                 player.add_stake(player.balance)
                 player.all_in()
-                print(f"{player.name} ({player.cards}, {player.balance}) goes all in with {all_in_value}.")
+                print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
         else:
             if action_type == "call":
                 player.bal(-(bet-player.round_stake))
                 self.add_pot(bet-player.round_stake)
                 
-                print(f"{player.name} ({player.cards}, {player.balance}) calls {bet} (+{bet-player.round_stake}).")
+                print(f"{player.name} ({player.balance}) calls {bet} (+{bet-player.round_stake}).")
                 player.add_stake(bet - player.round_stake)
 
             elif action_type == "fold":
                 player.folded = True
-                print(f"{player.name} ({player.cards}, {player.balance}) folds.")
+                print(f"{player.name} ({player.balance}) folds.")
 
             elif action_type == "check":
-                print(f"{player.name} ({player.cards}, {player.balance}) checks.")
+                print(f"{player.name} ({player.balance}) checks.")
 
 
-    def round(self, bet = 0):
+    def round(self, pos = 1, bet = 0):
         num_player = len(self.players)
-        i = self.btn + 3
+        i = self.btn + pos
         count = 0
         last_raiser: int = None
         bet = bet
@@ -173,12 +201,15 @@ class Game():
         while count < num_player:
 
             turn = self.players[i % num_player]
+
             if turn.folded: # when the turn is folded, ignore and skip
                 i += 1
+                count += 1
                 continue
 
             if turn.all_in: # when the turn is folded, ignore and skip
                 i += 1
+                count += 1
                 continue
 
             if last_raiser is not None and i%num_player == last_raiser: # if the turn is the last raiser with no new raises, end the round
@@ -190,14 +221,18 @@ class Game():
 
             if len(action.split()) == 2:
                 if int(action.split()[1]) > bet: # when new bet is higher than current bet
-                    last_raiser = i%num_player
+                    last_raiser = i % num_player
                     if action.split()[0] == "all_in":
                         bet = turn.balance
-                    bet = int(action.split()[1])
-                    count = 0
+                    else:
+                        bet = int(action.split()[1])
+                    count = 0  # Reset count only if a new bet is made
+                else:
+                    count += 1  # Increase count only if no new bet is made
             else:
-                count += 1
+                count += 1  # Increase count if it's a simple action like "check" or "call"
 
             i += 1
 
             self.take_action(turn, action, bet)
+            print("-"*10)
