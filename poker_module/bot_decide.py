@@ -228,7 +228,7 @@ def decide(self, bet, blind):
     bluff_frequency = self.bluff_frequency >= rand
     risk_tolerance = self.risk_tolerance >= rand
 
-    sleep(randint(1, 4))
+    #sleep(randint(1, 4))
 
     if bet == 0:
         return f"bet {blind}" if (rating <= 4) and (aggressiveness or bluff_frequency) else "check"

@@ -30,19 +30,18 @@ class Game():
         card = self.deck[randint(0, 51)]
         while card in self.cards:
             card = self.deck[randint(0, 51)]
+        self.add_card(card)
         return card 
 
     def give_first_hand(self):
         for p in self.players:
             for i in range(2):
                 card = self.new_card()
-                self.add_card(card)
                 p.add_card(card)
     
     def give_com_card(self, amount):
         for i in range (amount):
             card = self.new_card()
-            self.add_card(card)
             self.community_cards.append(card)
             for p in self.players:
                 p.add_card(card)
@@ -105,8 +104,9 @@ class Game():
         print(f"BTN: {players[dealer_button].name}")
         print(f"SB: {players[(dealer_button+1) % num_players].name}")
         print(f"BB: {players[(dealer_button+2) % num_players].name}")
-        print(f"Balance: {player.balance}")
-        print(f"Cards: {player.cards}")
+        if player is not None:
+            print(f"Balance: {player.balance}")
+            print(f"Cards: {player.cards}")
 
         br()
 
@@ -119,8 +119,9 @@ class Game():
 
         self.give_com_card(3)
         print(f"Community cards: {self.community_cards}")
-        print(f"Balance: {player.balance}")
-        print(f"Cards: {player.cards[:2]}")
+        if player is not None:
+            print(f"Balance: {player.balance}")
+            print(f"Cards: {player.cards[:2]}")
         self.round()
 
         br()
@@ -130,8 +131,9 @@ class Game():
 
         self.give_com_card(1)
         print(f"Community cards: {self.community_cards}")
-        print(f"Balance: {player.balance}")
-        print(f"Cards: {player.cards[:2]}")
+        if player is not None:
+            print(f"Balance: {player.balance}")
+            print(f"Cards: {player.cards[:2]}")
         self.round()
 
         br()
@@ -141,13 +143,14 @@ class Game():
 
         self.give_com_card(1)
         print(f"Community cards: {self.community_cards}")
-        print(f"Balance: {player.balance}")
-        print(f"Cards: {player.cards[:2]}")
+        if player is not None:
+            print(f"Balance: {player.balance}")
+            print(f"Cards: {player.cards[:2]}")
         self.round()
 
-        winner = decide_winner([p for p in self.players if not p.folded])
+        winners = decide_winner([p for p in self.players if not p.folded])
         hand_rankings = {1: "High Card", 2: "Pair", 3: "Two Pair", 4: "Three of a Kind", 5: "Straight", 6: "Flush", 7: "Full House", 8: "Four of a Kind", 9: "Straight Flush", 10: "Royal Flush", }
-        print(f"{winner[0].name} won the hand with {hand_rankings[winner[1]]}!")
+        print(f"{[winner.name for winner in winners[0]]} won the hand with {hand_rankings[winners[1]]}!")
 
     def take_action(self, player, action, bet): # actions: check, call, bet, raise, all-in
         action = action.split()
