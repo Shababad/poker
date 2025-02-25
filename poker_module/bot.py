@@ -16,14 +16,14 @@ class Bot():
         self.type = "bot"
 
         self.folded: bool = False
-        self.all_in: bool = False
+        self.all_in_status: bool = False
 
     def add_card(self, card: str):
         self.cards.append(card)
 
     def all_in(self):
         self.balance = 0
-        self.all_in = True
+        self.all_in_status = True
 
     def bal(self, amount):
         self.balance += amount
