@@ -7,7 +7,7 @@ from time import time
 # ---------- VARIABLES And INPUTS ---------- #
 start_balance = 10000
 bots_amount = 5 #int(input("Bots amount: "))
-players_amount = 1 #int(input("Players amount: "))
+players_amount = 0 #int(input("Players amount: "))
 default_configuration = {
         "aggressiveness": 0.51,
         "bluff_frequency": 0.91,
