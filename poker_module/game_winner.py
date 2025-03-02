@@ -145,28 +145,28 @@ def best_combination(cards):
     else:
         high_card_list = [ranks[card[1]] for card in cards]
         sorted(high_card_list, key=int, reverse=True)
-        return 1, max(high_card_list)
+        return 1, high_card_list
 
 def decide_winner(players):
     highest_combination = 0
     best_hands = {}
 
-    # Step 1: Find the highest combination ranking
+    # Find the highest combination ranking
     for player in players:
         player_combination = best_combination(player.cards)  # (ranking, tiebreaker_values)
         best_hands[player] = player_combination  
         highest_combination = max(highest_combination, player_combination[0])
 
-    # Step 2: Get all players with the highest ranking
+    # Get all players with the highest ranking
     high_player_list = [p for p in players if best_hands[p][0] == highest_combination]
 
-    # Step 3: Sort by tiebreaker values (e.g., for full house, check trips first, then pair)
+    # Sort by tiebreaker values (e.g., for full house, check trips first, then pair)
     high_player_list.sort(key=lambda p: best_hands[p][1], reverse=True)
 
-    # Step 4: Find the highest tiebreaker score
+    # Find the highest tiebreaker score
     top_score = best_hands[high_player_list[0]][1]
 
-    # Step 5: Determine if there is a tie
+    # Determine if there is a tie
     winners = [p for p in high_player_list if best_hands[p][1] == top_score]
 
     return winners, highest_combination  # Returns winners and their ranking (1-10)

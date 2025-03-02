@@ -19,6 +19,7 @@ class Game():
         ]
 
         self.win_count = {}
+        self.print_game = True
 
 
     # Basic Functions #
@@ -57,6 +58,7 @@ class Game():
         print(table)
 
     def process_blind(self):
+        p = self.print_game
         num_players = len(self.players)
         players = self.players
         if self.btn == None:
@@ -71,10 +73,10 @@ class Game():
             SB = (BTN + 1) % num_players
             BB = (BTN + 2) % num_players
 
-        print([p.name for p in players])
+        if p: print([p.name for p in players])
         small_blind = players[SB]
         big_blind = players[BB]
-        print(big_blind.name)
+        if p: print(big_blind.name)
 
         if small_blind.balance <= self.blind:
             self.add_pot(small_blind.balance)
@@ -116,8 +118,9 @@ class Game():
 
     # Game mechanic Functions #
     def start(self):
+        p = self.print_game
         def br():
-            print("="*60)
+            if p: print("="*60)
         def reset():
             for p in players:
                 p.round_reset()
@@ -129,114 +132,135 @@ class Game():
         dealer_button = self.process_blind()
 
         br()
-
-        print("POKER GAME")
-        print(f"BTN: {players[dealer_button].name}")
-        print(f"SB: {players[(dealer_button+1) % num_players].name}")
-        print(f"BB: {players[(dealer_button+2) % num_players].name}")
+        if p: 
+            print("POKER GAME")
+            print(f"BTN: {players[dealer_button].name}")
+            print(f"SB: {players[(dealer_button+1) % num_players].name}")
+            print(f"BB: {players[(dealer_button+2) % num_players].name}")
         if player is not None:
-            print(f"Balance: {player.balance}")
-            print(f"Cards: {player.cards}")
+            if p: print(f"Balance: {player.balance}")
+            if p: print(f"Cards: {player.cards}")
 
         br()
 
         self.round(3, self.blind *2)
+        if len([p for p in self.players if not p.folded]) == 1:
+            return
 
         br()
 
-        self.print_current()
+        if p: self.print_current()
         reset()
 
+        
         self.give_com_card(3)
-        print(f"Community cards: {self.community_cards}")
+        if p: print(f"Community cards: {self.community_cards}")
         if player is not None:
-            print(f"Balance: {player.balance}")
-            print(f"Cards: {player.cards[:2]}")
-        self.round()
-
+            if p: print(f"Balance: {player.balance}")
+            if p: print(f"Cards: {player.cards[:2]}")
+        if len([p for p in self.players if not p.all_in_status]) > 0:
+            self.round()
+        if len([p for p in self.players if not p.folded]) == 1:
+            return
         br()
 
-        self.print_current()
+        if p:  self.print_current()
         reset()
 
         self.give_com_card(1)
-        print(f"Community cards: {self.community_cards}")
+        if p: print(f"Community cards: {self.community_cards}")
         if player is not None:
-            print(f"Balance: {player.balance}")
-            print(f"Cards: {player.cards[:2]}")
-        self.round()
-
+            if p: print(f"Balance: {player.balance}")
+            if p: print(f"Cards: {player.cards[:2]}")
+        if len([p for p in self.players if not p.all_in_status]) > 0:
+            self.round()
+        if len([p for p in self.players if not p.folded]) == 1:
+            return
         br()
 
-        self.print_current()
+        if p: self.print_current()
         reset()
 
         self.give_com_card(1)
-        print(f"Community cards: {self.community_cards}")
+        if p: print(f"Community cards: {self.community_cards}")
         if player is not None:
-            print(f"Balance: {player.balance}")
-            print(f"Cards: {player.cards[:2]}")
-        self.round()
+            if p: print(f"Balance: {player.balance}")
+            if p: print(f"Cards: {player.cards[:2]}")
+        if len([p for p in self.players if not p.all_in_status]) > 0:
+            self.round()
+        if len([p for p in self.players if not p.folded]) == 1:
+            return
 
         winners = decide_winner([p for p in self.players if not p.folded])
         hand_rankings = {1: "High Card", 2: "Pair", 3: "Two Pair", 4: "Three of a Kind", 5: "Straight", 6: "Flush", 7: "Full House", 8: "Four of a Kind", 9: "Straight Flush", 10: "Royal Flush", }
-        print(f"{[winner.name for winner in winners[0]]} won the hand with {hand_rankings[winners[1]]}!")
+        if p: print(f"{[winner.name for winner in winners[0]]} won the hand with {hand_rankings[winners[1]]}!")
 
         self.end(winners[0])
         
 
     def take_action(self, player, action, bet): # actions: check, call, bet, raise, all-in
-        action = action.split()
-        action_type = action[0]
-        all_in_value = 0
-        if len(action) == 2:
-            bet_amount = int(action[1])
+        p = self.print_game
+        action_split = action.split()
+        action_type = action_split[0]
+        if len(action_split) == 2:
+            bet_amount = int(action_split[1])
 
             if action_type == "bet":
                 player.bal(-bet_amount)
                 self.add_pot(bet_amount)
-                print(f"{player.name} ({player.balance}) bets {action[1]}.")
+                if p: print(f"{player.name} ({player.balance}) bets {bet_amount}.")
                 player.add_stake(bet_amount)
 
             elif action_type == "raise":
                 player.bal(-(bet_amount-player.round_stake))
                 self.add_pot(bet_amount-player.round_stake)
-                print(f"{player.name} ({player.balance}) raises to {action[1]} (+{bet_amount-player.round_stake}).")
+                if p: print(f"{player.name} ({player.balance}) raises to {bet_amount} (+{bet_amount-player.round_stake}).")
                 player.add_stake(bet_amount - player.round_stake)
 
-            elif action_type == "all_in":
-                self.add_pot(player.balance)
-                all_in_value = player.balance
-                player.add_stake(player.balance)
-                player.all_in()
-                print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
         else:
-            if action_type == "call":
+            if action == "call":
                 player.bal(-(bet-player.round_stake))
                 self.add_pot(bet-player.round_stake)
                 
-                print(f"{player.name} ({player.balance}) calls {bet} (+{bet-player.round_stake}).")
+                if p: print(f"{player.name} ({player.balance}) calls {bet} (+{bet-player.round_stake}).")
                 player.add_stake(bet - player.round_stake)
 
-            elif action_type == "fold":
+            elif action == "fold":
                 player.folded = True
-                print(f"{player.name} ({player.balance}) folds.")
+                if p: print(f"{player.name} ({player.balance}) folds.")
 
-            elif action_type == "check":
-                print(f"{player.name} ({player.balance}) checks.")
+            elif action == "check":
+                if p: print(f"{player.name} ({player.balance}) checks.")
+
+            elif action == "all_in":
+                all_in_value = player.balance
+                self.add_pot(all_in_value)
+                player.add_stake(all_in_value)
+                player.all_in()
+                if p: print(f"{player.name} ({player.balance}) goes all in with {all_in_value}.")
+
+            else:
+                if p: print("other")
 
 
     def round(self, pos = 1, bet = 0):
+        p = self.print_game
         num_player = len(self.players)
         i = self.btn + pos
         count = 0
         last_raiser: int = None
-        bet = bet
         
 
         while count < num_player:
 
             turn = self.players[i % num_player]
+
+            active_players = [p for p in self.players if not p.folded]
+            if len(active_players) == 1:
+                if p: print(f"Everyone are folded except {turn.name}")
+                if p: print(f"{turn.name} wins")
+                self.end([turn])
+                break
 
             if turn.folded: # when the turn is folded, ignore and skip
                 i += 1
@@ -249,26 +273,26 @@ class Game():
                 continue
 
             if last_raiser is not None and i%num_player == last_raiser: # if the turn is the last raiser with no new raises, end the round
-                print("last raiser is turn")
+                if p: print("last raiser is turn")
                 break
 
-            print(f"{turn.name}s turn:")
+            if p: print(f"{turn.name}s turn:")
             action = turn.decide(bet, self.blind)
 
             if len(action.split()) == 2:
                 if int(action.split()[1]) > bet: # when new bet is higher than current bet
                     last_raiser = i % num_player
-                    if action.split()[0] == "all_in":
-                        bet = turn.balance
-                    else:
-                        bet = int(action.split()[1])
+                    bet = int(action.split()[1])
                     count = 0  # Reset count only if a new bet is made
                 else:
                     count += 1  # Increase count only if no new bet is made
             else:
                 count += 1  # Increase count if it's a simple action like "check" or "call"
 
-            i += 1
+            if action == "all_in":
+                bet = turn.balance
 
+            i += 1
+            if p: print(action)
             self.take_action(turn, action, bet)
-            print("-"*10)
+            if p: print("-"*10)

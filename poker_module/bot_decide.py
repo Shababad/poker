@@ -187,34 +187,24 @@ def rate_hand(self):
             
     else:
         if has_royal_flush(cards)[0]:
-            print("royal flush")
             return 10
         elif has_straight_flush(cards)[0]:
-            print("straight flush")
             return 9
         elif has_four_of_a_kind(cards)[0]:
-            print("four of a kind")
             return 8
         elif has_full_house(cards)[0]:
-            print("full house")
             return 7
         elif has_flush(cards)[0]:
-            print("flush")
             return 6
         elif has_straight(cards)[0]:
-            print("straight")
             return 5
         elif has_three_of_a_kind(cards)[0]:
-            print("three of a kind")
             return 4
         elif has_two_pair(cards)[0]:
-            print("two pair")
             return 3
         elif has_pair(cards)[0]:
-            print("pair")
             return 2
         else:
-            print("high card")
             return 1
         
 
@@ -233,7 +223,7 @@ def decide(self, bet, blind):
     if bet == 0:
         return f"bet {blind}" if (rating <= 4) and (aggressiveness or bluff_frequency) else "check"
     elif bet >= self.balance:
-        return f"all-in {self.balance}" if rating >= 7 or risk_tolerance else "fold"
+        return f"all-in" if rating >= 7 or risk_tolerance else "fold"
     else:
         if rating >= 7 or risk_tolerance:
             if aggressiveness:

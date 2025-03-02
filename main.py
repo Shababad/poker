@@ -6,7 +6,7 @@ from time import time
 
 # ---------- VARIABLES And INPUTS ---------- #
 start_balance = 10000
-bots_amount = 1 #int(input("Bots amount: "))
+bots_amount = 5 #int(input("Bots amount: "))
 players_amount = 1 #int(input("Players amount: "))
 default_configuration = {
         "aggressiveness": 0.51,
@@ -29,15 +29,18 @@ players = create_players(bots_amount, players_amount)
 game = Game(100, players)
 for p in players:
     game.win_count[p.name] = 0
+game.print_game = False
 
-
-#start = time()
-while True:
-    if input("Enter 'start' to start: ") == "start":
-        game.start()
-    else:
-        break
-print(game.win_count)
-#end = time()
-#print(f"1000 games took {end-start} seconds")
+n = int(input("Numbers of games (130games/sec): "))
+i = 0
+start = time()
+while i in range(n):
+    #if input("Enter 'start' to start: ") == "start":
+    game.start()
+    i += 1
+    #else:
+    #    break
+if p: print(game.win_count)
+end = time()
+if p: print(f"1000 games took {end-start} seconds")
 
